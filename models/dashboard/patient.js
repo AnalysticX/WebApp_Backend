@@ -14,7 +14,10 @@ const patientSchema = new mongoose.Schema(
       required: [true, "Please provide your gender"],
       enum: ["Male", "Female", "Other"],
     },
-    disease: String,
+    disease: {
+      type: String,
+      required: [true, "Please enter the disease"],
+    },
     active: {
       type: Boolean,
       default: true,

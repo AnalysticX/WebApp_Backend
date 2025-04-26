@@ -21,7 +21,7 @@ export const findSingleDisease = async function (req, res, next) {
     const diseaseId = req.params.id;
     //Check for valid diseaseId
     if (!isValidObjectId(diseaseId)) {
-      return res.status(500).json({
+      return res.status(404).json({
         success: false,
         message: "Disease Id does not follow the correct format.",
         data: {},
@@ -66,7 +66,9 @@ export const exportDisease = async function (req, res, next) {
 export const findFilterDiseases = async function (req, res, next) {
   try {
     const { id, diseaseName, trend, chronicCases } = req.body;
-    let filterObject = {};
+    let filterObject = {
+      chronicCases:{$lte:chronicCases||1000000}
+    };
     if (id) {
       filterObject["_id"] = id;
     }

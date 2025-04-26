@@ -7,7 +7,7 @@ const reportSchema = new mongoose.Schema(
       required: [true, "Please enter the report name"],
     },
     generatedBy: {
-      type: Number,
+      type: mongoose.Types.ObjectId,
       required: [true, "Please provide the user ID"],
     },
     timeFrameStart: {
@@ -18,10 +18,7 @@ const reportSchema = new mongoose.Schema(
       type: Date,
       required: [true, "Please provide the end date of the time frame"],
     },
-    filePath: {
-      type: String,
-      required: [true, "Please provide the file path"],
-    },
+    filePath:String,
   },
   { timestamps: true }
 );

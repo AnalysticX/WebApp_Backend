@@ -9,14 +9,22 @@ import {
   updateDisease,
 } from "../../controllers/dashboard/disease.js";
 
-const app = express();
+const router = express();
 
-app.post("/api/v1/dashboard/disease/new", createDisease);
-app.post("/api/v1/dashboard/disease/filter", findFilterDiseases);
-app.get("/api/v1/dashboard/disease/all", findAllDiseases);
-app.get("/api/v1/dashboard/disease/:id", findSingleDisease);
-app.delete("/api/v1/dashboard/disease/:id", deleteDisease);
-app.post("/api/v1/dashboard/disease/export", exportDisease);
-app.put("/api/v1/dashboard/disease/:id", updateDisease);
+//Route to create a new disease
+router.post("/disease/new", createDisease);
+//Route to put filters on disease
+router.post("/disease/filter", findFilterDiseases);
+//Route to get all patients
+router.get("/disease/all", findAllDiseases);
+//Route to get single disease
+router.get("/disease/:id", findSingleDisease);
+//Route to delete single disease
+router.delete("/disease/:id", deleteDisease);
+//Route to update single disease
+router.put("/disease/:id", updateDisease);
+//Route to export disease
+router.post("/disease/export", exportDisease);
 
-export const diseaseRoutes = app;
+
+export default router;
