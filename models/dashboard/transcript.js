@@ -2,24 +2,26 @@ import mongoose from "mongoose";
 
 const transcriptSchema = new mongoose.Schema(
   {
-    ayushmanId:{
-        type:String,
-        required:true
+    ayushmanId: {
+      type: String,
+      required: true,
     },
-    s3Bucket:{
-        type:String,
-        required:true
+    s3Bucket: {
+      type: String,
+      required: true,
     },
-    s3Key:{
-        type:String,
-        required:true
+    s3Key: {
+      type: String,
+      required: true,
     },
-    uploadedBy:{
-        // type:mongoose.Types.ObjectId,
-        type:String,
-        required:true,
-        // ref:'User'
-    }
+    userId: { type: mongoose.Types.ObjectId, ref: "User" },
+
+    uploadedBy: {
+      // type:mongoose.Types.ObjectId,
+      type: String,
+      required: true,
+      // ref:'User'
+    },
   },
   { timestamps: true }
 );

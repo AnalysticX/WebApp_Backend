@@ -40,9 +40,7 @@ export const chartData = async (req, res) => {
       //   1. Fetch all the disease with their counts
       const diseaseObj = {};
       patients.forEach((patient) => {
-        if (
-          Object.keys(diseaseObj).includes(patient.disease)
-        ) {
+        if (Object.keys(diseaseObj).includes(patient.disease)) {
           diseaseObj[patient.disease] += 1;
         } else {
           diseaseObj[patient.disease] = 1;
@@ -57,13 +55,13 @@ export const chartData = async (req, res) => {
         (a, b) => diseaseObj[a] > diseaseObj[b]
       );
       for (let i = 0; i < sortedKeys.length; i++) {
-        const key = sortedKeys[i]
+        const key = sortedKeys[i];
         if (i < 3) {
           finalObj[key] = diseaseObj[key];
         } else {
-          if(Object.keys(finalObj).includes("others")){
+          if (Object.keys(finalObj).includes("others")) {
             finalObj["others"] += diseaseObj[key];
-          }else{
+          } else {
             finalObj["others"] = diseaseObj[key];
           }
         }
@@ -71,7 +69,7 @@ export const chartData = async (req, res) => {
       sixMonths.push(finalObj);
     }
     //   3. Return this updated data
-    return res.status(200).json({ success: true, data: sixMonths });
+    return res.status(200).json({ success: true, data: sixMonths.reverse() });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
@@ -85,21 +83,33 @@ export const tableData = async (req, res) => {
         .status(404)
         .json({ success: false, message: "No patient found." });
     }
-    const updatedPatients = patients.map(ins=>{
-      const result = {id:ins.ayushmanId, name:ins.fullName, disease:ins.disease,status:'normal'}
+    const updatedPatients = patients.map((ins) => {
+      const result = {
+        id: ins.ayushmanId,
+        name: ins.name,
+        disease: ins.disease,
+        status: "normal",
+      };
       let status = "";
-      if(ins.disease == 'Tuberclosis' || ins.disease == 'Hypertension' || ins.disease == 'Flu'){
-        status = 'hyper';
+      if (
+        ins.disease == "Tuberclosis" ||
+        ins.disease == "Hypertension" ||
+        ins.disease == "Flu"
+      ) {
+        status = "hyper";
+      } else if (
+        ins.disease == "Cardiovascular Disease" ||
+        ins.disease == "Arthritis" ||
+        ins.disease == "Asthama"
+      ) {
+        status = "moderate";
+      } else {
+        status = "normal";
       }
-      else if(ins.disease == 'Cardiovascular Disease' || ins.disease == 'Arthritis' || ins.disease == 'Asthama'){
-        status = 'moderate';
-      }else{
-        status = 'normal';
-      }
-      result['status'] = status;
+      result["status"] = status;
 
-    return result;  
-    })
+      return result;
+    });
     return res.status(200).json({ success: true, data: updatedPatients });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });

@@ -18,7 +18,8 @@ const reportSchema = new mongoose.Schema(
       type: Date,
       required: [true, "Please provide the end date of the time frame"],
     },
-    filePath:String,
+    filePath: String,
+    userId: { type: mongoose.Types.ObjectId, required: true, ref: "User" },
   },
   { timestamps: true }
 );

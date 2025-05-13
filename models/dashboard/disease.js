@@ -15,6 +15,7 @@ const diseaseSchema = new mongoose.Schema(
       enum: ["Rising", "Stable", "Decreasing"],
       default: "Stable",
     },
+    userId: { type: mongoose.Types.ObjectId, ref: "User" },
   },
   { timestamps: true }
 );
