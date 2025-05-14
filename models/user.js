@@ -11,6 +11,12 @@ const userSchema = new mongoose.Schema({
       ref: "Patient",
     },
   ],
+  diseases: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Disease",
+    },
+  ],
   notifications: [
     {
       type: mongoose.Schema.Types.ObjectId,

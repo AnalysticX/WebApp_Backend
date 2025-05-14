@@ -1,4 +1,5 @@
 import { Patient } from "../../models/dashboard/patient.js";
+import { User } from "../../models/user.js";
 
 export const chartData = async (req, res) => {
   try {
@@ -30,13 +31,11 @@ export const chartData = async (req, res) => {
       startDate.setMonth(startDate.getMonth() + 1);
       endDate.setMonth(endDate.getMonth() + 1);
       const monthName = startDate.toLocaleString("default", { month: "long" });
-      const patients = await Patient.find({
-        createdAt: {
-          $gt: startDate,
-          $lte: endDate,
-        },
-      });
-
+      const user = await User.findById(req.user.id).populate("patients");
+      const patients = user.patients.filter(
+        (patient) =>
+          patient.createdAt > startDate && patient.createdAt <= endDate
+      );
       //   1. Fetch all the disease with their counts
       const diseaseObj = {};
       patients.forEach((patient) => {
@@ -77,7 +76,11 @@ export const chartData = async (req, res) => {
 
 export const tableData = async (req, res) => {
   try {
-    const patients = await Patient.find({}).sort({ createdAt: -1 }).limit(8);
+    const user = await User.findById(req.user.id)
+      .populate("patients")
+      .sort({ createdAt: -1 })
+      .limit(8);
+    const patients = user.patients;
     if (!patients) {
       return res
         .status(404)

@@ -69,10 +69,14 @@ export const login = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
-
 export const logout = async (req, res) => {
   try {
-    res.clearCookie("authToken");
+    res.clearCookie("authToken", {
+      httpOnly: true,
+      secure: false, // should match what you used while setting
+      sameSite: "lax",
+      path: "/", // safest to add this unless you set a different path
+    });
     res
       .status(200)
       .json({ success: true, message: "Logged out successfully." });
