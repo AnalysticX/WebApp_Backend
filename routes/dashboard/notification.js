@@ -11,7 +11,7 @@ import verifyUser from "../../middlewares/verifyUser.js";
 const router = express();
 
 //Route to get all notifications
-router.get("/notification/all", verifyUser, getAllNotifications);
+router.get("/notification/all/:unread", verifyUser, getAllNotifications);
 //Route to get fileterd notifications(by type or user id or (user id + patient,disease id))
 router.get("/notification/filter", verifyUser, findFilteredNotifications);
 //Route to get single notification by id

@@ -1,6 +1,7 @@
 import { isValidObjectId } from "mongoose";
 import { Report } from "../../models/dashboard/report.js";
 import { reportPdfGenerator } from "../../utils/reportPdfGenerator.js"; // Assuming a utility function for PDF generation
+import { User } from "../../models/user.js";
 
 // Get all reports
 export const getAllReports = async (req, res) => {
@@ -13,56 +14,99 @@ export const getAllReports = async (req, res) => {
 };
 
 //Find single report
-export const findSingleReport = async(req,res)=>{
+export const findSingleReport = async (req, res) => {
   try {
-    const id = req.params.id
-    if(!id){
-      return res.status(404).json({success:false,message:'Provide report id to search for.'})
+    const id = req.params.id;
+    if (!id) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Provide report id to search for." });
     }
-    if(!isValidObjectId(id)){
-      return res.status(422).json({success:false,message:'Invalid type of report id'})
+    if (!isValidObjectId(id)) {
+      return res
+        .status(422)
+        .json({ success: false, message: "Invalid type of report id" });
     }
-    const report = await Report.findById(id)
-    if(!report){
-      return res.status(404).json({success:false,message:'No report with this id found.'})
+    const report = await Report.findById(id);
+    if (!report) {
+      return res
+        .status(404)
+        .json({ success: false, message: "No report with this id found." });
     }
-    return res.status(200).json({success:true,data:report})
+    return res.status(200).json({ success: true, data: report });
   } catch (error) {
-    return res.status(500).json({success:false,message:error.message})
+    return res.status(500).json({ success: false, message: error.message });
   }
-}
+};
+
+export const findReportStats = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).populate("patients");
+    const data = {
+      total: user.patients.length,
+      active: user.patients.filter((patient) => patient.active === true).length,
+      resolved: user.patients.filter((patient) => patient.active === false)
+        .length,
+      chronic: user.patients.filter((patient) => patient.isChronic === true)
+        .length,
+      increasing: Math.floor(Math.random() * 10),
+      decreasing: Math.floor(Math.random() * 10),
+      mosAffected: "Kanpur",
+    };
+    return res.status(200).json({ success: true, data });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
 
 //Create new report
-export const createReport = async(req,res)=>{
+export const createReport = async (req, res) => {
   try {
-    const {reportName,generatedBy,timeFrameStart,timeFrameEnd,filePath} = req.body;
-    if(!reportName || !generatedBy ||timeFrameStart ||!timeFrameEnd){
-      return res.status(422).json({success:false,message:"Please provide all required entries."})
+    const { reportName, generatedBy, timeFrameStart, timeFrameEnd, filePath } =
+      req.body;
+    if (!reportName || !generatedBy || timeFrameStart || !timeFrameEnd) {
+      return res.status(422).json({
+        success: false,
+        message: "Please provide all required entries.",
+      });
     }
-    await Report.create({reportName,generatedBy,timeFrameEnd,timeFrameStart,filePath})
-    return res.status(200).json({success:true,message:"Report created successfully."})
+    await Report.create({
+      reportName,
+      generatedBy,
+      timeFrameEnd,
+      timeFrameStart,
+      filePath,
+    });
+    return res
+      .status(200)
+      .json({ success: true, message: "Report created successfully." });
   } catch (error) {
-    return res.status(500).json({success:false,message:error.message})
+    return res.status(500).json({ success: false, message: error.message });
   }
-}
+};
 
 //Delete single report
-export const deleteReport = async(req,res)=>{
+export const deleteReport = async (req, res) => {
   try {
-    const id = req.params.id
-    if(!id){
-      return res.status(404).json({success:false,message:'Provide report id to delete it.'})
+    const id = req.params.id;
+    if (!id) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Provide report id to delete it." });
     }
-    if(!isValidObjectId(id)){
-      return res.status(422).json({success:false,message:'Invalid type of report id'})
+    if (!isValidObjectId(id)) {
+      return res
+        .status(422)
+        .json({ success: false, message: "Invalid type of report id" });
     }
-    await Report.findByIdAndDelete(id)
-    return res.status(200).json({success:true,message:`Report deleted successfully.`})
+    await Report.findByIdAndDelete(id);
+    return res
+      .status(200)
+      .json({ success: true, message: `Report deleted successfully.` });
   } catch (error) {
-    return res.status(500).json({success:false,message:error.message})
+    return res.status(500).json({ success: false, message: error.message });
   }
-}
-
+};
 
 // Export multiple reports by IDs
 export const exportReports = async (req, res) => {

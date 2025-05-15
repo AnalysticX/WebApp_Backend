@@ -5,6 +5,7 @@ import {
   deleteReport,
   createReport,
   findSingleReport,
+  findReportStats,
 } from "../../controllers/dashboard/report.js";
 import verifyUser from "../../middlewares/verifyUser.js";
 
@@ -12,6 +13,8 @@ const router = express.Router();
 
 // Route to get all reports
 router.get("/report/all", verifyUser, getAllReports);
+//Route to get report stats
+router.get("/report/stats", verifyUser, findReportStats);
 //Route to get a single report
 router.get("/report/:id", verifyUser, findSingleReport);
 // Route to export reports by IDs

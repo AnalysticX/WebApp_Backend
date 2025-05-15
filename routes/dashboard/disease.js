@@ -9,7 +9,6 @@ import {
   findFilterDiseases,
   findSingleDisease,
   singleDiseaseStats,
-  updateDisease,
 } from "../../controllers/dashboard/disease.js";
 import verifyUser from "../../middlewares/verifyUser.js";
 
@@ -30,8 +29,6 @@ router.post("/disease/new", verifyUser, createDisease);
 router.post("/disease/filter", verifyUser, findFilterDiseases);
 //Route to delete single disease
 router.delete("/disease/:id", verifyUser, deleteDisease);
-//Route to update single disease
-router.put("/disease/:id", verifyUser, updateDisease);
 //Route to export disease
 router.post("/disease/export", verifyUser, exportDisease);
 

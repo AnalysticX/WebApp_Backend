@@ -162,11 +162,14 @@ export const createPatient = async function (req, res, next) {
       currentDisease.activeCases += 1;
       currentDisease.save();
     } else {
-      await Disease.create({
+      const disease = await Disease.create({
         diseaseName: patient.disease,
         totalCases: 1,
         chronicCases: 0,
         activeCases: 1,
+      });
+      await User.findByIdAndUpdate(req.user.id, {
+        $push: { diseases: disease._id },
       });
     }
     return res
@@ -201,9 +204,12 @@ export const deletePatient = async (req, res, next) => {
     });
     currentDisease.totalCases -= 1;
     if (patient.active) currentDisease.activeCases -= 1;
-    console.log(currentDisease);
-    if (currentDisease.totalCases == 0) await currentDisease.deleteOne();
-    else currentDisease.save();
+    if (currentDisease.totalCases == 0) {
+      await currentDisease.deleteOne();
+      await User.findByIdAndUpdate(req.user.id, {
+        $pull: { diseases: currentDisease._id },
+      });
+    } else currentDisease.save();
 
     //Delete the patient from the database
     await patient.deleteOne();
@@ -254,6 +260,9 @@ export const updatePatient = async (req, res, next) => {
           activeCases: 0,
           isChronic: false,
         });
+        await User.findByIdAndUpdate(req.user.id, {
+          $push: { diseases: updatedDisease._id },
+        });
       }
 
       if (currentDisease.diseaseName !== updatedDisease.diseaseName) {
@@ -264,7 +273,12 @@ export const updatePatient = async (req, res, next) => {
         updatedDisease.activeCases += 1;
         currentDisease.save();
         updatedDisease.save();
-        if (currentDisease.totalCases === 0) await currentDisease.deleteOne();
+        if (currentDisease.totalCases === 0) {
+          await currentDisease.deleteOne();
+          await User.findByIdAndUpdate(req.user.id, {
+            $pull: { diseases: currentDisease._id },
+          });
+        }
       }
     } else {
       //Active Cases Update

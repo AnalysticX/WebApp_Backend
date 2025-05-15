@@ -4,10 +4,12 @@ import { Disease } from "../../models/dashboard/disease.js";
 import { diseasePdfGenerator } from "../../utils/diseasePdfGenerator.js";
 import cleanAndCapitalize from "../../utils/cleanAndCapitalize.js";
 import { Patient } from "../../models/dashboard/patient.js";
+import { User } from "../../models/user.js";
 
 export const findAllDiseases = async function (req, res, next) {
   try {
-    let diseases = await Disease.find({});
+    let user = await User.findById(req.user.id).populate("diseases");
+    const diseases = user.diseases;
     return res
       .status(200)
       .json({ success: true, message: "Got the diseases.", data: diseases });
@@ -21,15 +23,8 @@ export const findAllDiseases = async function (req, res, next) {
 export const findSingleDisease = async function (req, res, next) {
   try {
     const diseaseId = req.params.id;
-    //Check for valid diseaseId
-    if (!isValidObjectId(diseaseId)) {
-      return res.status(404).json({
-        success: false,
-        message: "Disease Id does not follow the correct format.",
-        data: {},
-      });
-    }
-    const disease = await Disease.findById(diseaseId);
+    const user = await User.findById(req.user.id).populate("diseases");
+    const disease = user.diseases.find((disease) => disease._id == diseaseId);
     //Check if this disease exists in database
     if (!disease) {
       return res.status(500).json({
@@ -65,18 +60,18 @@ export const exportDisease = async function (req, res, next) {
 
 export const commonDiseaseStats = async (req, res) => {
   try {
-    const total = await Disease.countDocuments({});
-    const chronic = await Disease.countDocuments({
-      isChronic: true,
-    });
-    const diseases = await Disease.find({}).sort({ totalCases: -1 });
+    const user = await User.findById(req.user.id).populate("diseases");
+    const total = user.diseases.length;
+    const chronic = user.diseases.filter(
+      (disease) => disease.isChronic === true
+    ).length;
+    const diseases = user.diseases.sort((a, b) => b.totalCases - a.totalCases);
     const active = diseases.reduce(
       (accumulator, currentValue) => accumulator + currentValue.activeCases,
       0
     );
 
     const mostCommon = diseases[0] ? diseases[0].diseaseName : "..........";
-
     return res.status(200).json({
       success: true,
       data: {
@@ -96,14 +91,20 @@ export const commonDiseaseStats = async (req, res) => {
 export const singleDiseaseStats = async (req, res) => {
   try {
     const id = req.params.id;
-    const { diseaseName, totalCases, activeCases, isChronic } =
-      await Disease.findById(id);
+    const user = await User.findById(req.user.id)
+      .populate("diseases")
+      .populate("patients");
+    const disease = user.diseases.find((disease) => String(disease._id) === id);
+    const { diseaseName, totalCases, activeCases, isChronic } = disease;
     const today = new Date();
     const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const newCases = await Patient.countDocuments({
-      createdAt: { $gte: sevenDaysAgo, $lte: today },
-      disease: diseaseName,
-    });
+
+    const newCases = user.patients.filter(
+      (patient) =>
+        patient.createdAt >= sevenDaysAgo &&
+        patient.createdAt <= today &&
+        patient.disease === diseaseName
+    ).length;
     const stats = {
       totalCases,
       activeCases,
@@ -120,7 +121,10 @@ export const singleDiseaseStats = async (req, res) => {
 export const diseasesPatients = async (req, res) => {
   try {
     const diseaseName = req.params.diseaseName;
-    const patients = await Patient.find({ disease: diseaseName });
+    const user = await User.findById(req.user.id).populate("patients");
+    const patients = user.patients.filter(
+      (patient) => patient.disease === diseaseName
+    );
     return res.status(200).json({ success: true, data: patients });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
@@ -157,12 +161,16 @@ export const findFilterDiseases = async function (req, res, next) {
 export const createDisease = async function (req, res, next) {
   try {
     const { diseaseName, totalCases, activeCases, isChronic, trend } = req.body;
-    await Disease.create({
+    const disease = await Disease.create({
       diseaseName: cleanAndCapitalize(diseaseName),
       totalCases,
       activeCases,
       isChronic,
       trend,
+    });
+
+    await User.findByIdAndUpdate(req.user.id, {
+      $push: { diseases: disease._id },
     });
     return res
       .status(200)
@@ -182,41 +190,13 @@ export const deleteDisease = async (req, res, next) => {
         data: {},
       });
     }
-    await Disease.findByIdAndDelete(diseaseId);
+    const disease = await Disease.findByIdAndDelete(diseaseId);
+    await User.findByIdAndUpdate(req.user.id, {
+      $pull: { diseases: disease._id },
+    });
     return res.status(200).json({
       success: true,
       message: "Disease Removed Successfully.",
-    });
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-      data: {},
-    });
-  }
-};
-
-export const updateDisease = async (req, res, next) => {
-  const diseaseId = req.params.id;
-  const { diseaseName, totalCases, activeCases, isChronic, trend } = req.body;
-  try {
-    if (!isValidObjectId) {
-      return res.status(500).json({
-        success: false,
-        message: "Disease Id does not follow the correct format.",
-        data: {},
-      });
-    }
-    await Disease.findByIdAndUpdate(diseaseId, {
-      diseaseName,
-      totalCases,
-      activeCases,
-      isChronic,
-      trend,
-    });
-    return res.status(200).json({
-      success: true,
-      message: "Disease Updated Successfully.",
     });
   } catch (error) {
     return res.status(500).json({
