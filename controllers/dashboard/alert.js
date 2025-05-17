@@ -4,6 +4,7 @@ import { User } from "../../models/user.js";
 export const getAllAlerts = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).populate("alerts");
+    console.log(user);
     const alerts = user.alerts;
     if (!alerts) {
       return res
@@ -92,7 +93,7 @@ export const createAlert = async (req, res) => {
       isActive,
     });
     await User.findByIdAndUpdate(req.user.id, {
-      $push: { alerts: alert },
+      $push: { alerts: alert._id },
     });
     return res
       .status(201)
@@ -113,7 +114,7 @@ export const deleteAlert = async (req, res) => {
     }
     const alert = await Alert.findByIdAndDelete(id);
     await User.findByIdAndUpdate(req.user.id, {
-      $pull: { alerts: alert },
+      $pull: { alerts: alert._id },
     });
     return res
       .status(200)

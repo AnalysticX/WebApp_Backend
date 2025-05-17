@@ -5,6 +5,14 @@ const userSchema = new mongoose.Schema({
   name: String,
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
+  contactNumber: Number,
+  specialty: String,
+  department: String,
+  gender: { type: String, enum: ["Male", "Female", "Others"] },
+  hospitalName: String,
+  hospitalAddress: String,
+  backgroundImage: String,
+  profileImage: String,
   patients: [
     {
       type: mongoose.Schema.Types.ObjectId,

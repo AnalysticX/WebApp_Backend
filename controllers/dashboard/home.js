@@ -118,3 +118,29 @@ export const tableData = async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+export const patientCountStats = async (req, res) => {
+  try {
+    const today = new Date();
+    const startOfToday = new Date(today.setHours(0, 0, 0, 0));
+    const endOfToday = new Date(today.setHours(23, 59, 59, 999));
+
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6); // include today as 1 day
+
+    const startOf7Days = new Date(sevenDaysAgo.setHours(0, 0, 0, 0));
+    const [todayCount, sevenDaysAgoCount] = await Promise.all([
+      Patient.countDocuments({
+        createdAt: { $gte: startOfToday, $lte: endOfToday },
+      }),
+      Patient.countDocuments({
+        createdAt: { $gte: startOf7Days },
+      }),
+    ]);
+    return res
+      .status(200)
+      .json({ success: true, data: { todayCount, sevenDaysAgoCount } });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};

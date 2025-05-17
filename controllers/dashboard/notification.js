@@ -5,9 +5,10 @@ export const getAllNotifications = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).populate("notifications");
     let notifications = user.notifications;
-    if (req.params.unread) {
+    if (String(req.params.unread) == "true") {
       notifications = notifications.filter(
-        (notification) => notification.isRead === false
+        (notification) =>
+          String(notification.isRead) != String(req.params.unread)
       );
     }
     if (!notifications) {
@@ -46,7 +47,6 @@ export const findSingleNotification = async (req, res) => {
 
 export const findFilteredNotifications = async (req, res) => {
   try {
-    console.log("Hello");
     const { type, patientId, diseaseId } = req.body;
     let filterObject = {};
     if (type) {
@@ -97,7 +97,7 @@ export const createNotification = async (req, res) => {
       isRead,
     });
     await User.findByIdAndUpdate(req.user.id, {
-      $push: { notifications: notification },
+      $push: { notifications: notification._id },
     });
     return res
       .status(201)
@@ -117,8 +117,10 @@ export const deleteNotification = async (req, res) => {
       });
     }
     const notification = await Notification.findByIdAndDelete(id);
+    console.log(notification);
+    console.log(req.user.id);
     await User.findByIdAndUpdate(req.user.id, {
-      $pull: { notifications: notification },
+      $pull: { notifications: notification._id },
     });
     return res
       .status(200)

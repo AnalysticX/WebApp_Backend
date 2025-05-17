@@ -13,11 +13,14 @@ export const register = async (req, res) => {
         .status(400)
         .json({ success: false, message: "Already logged in." });
     }
-    const { name, email, password } = req.body;
+    let { name, email, password } = req.body;
     if (!name || !email || !password) {
       res
         .status(400)
         .json({ success: false, message: "Provide all the details." });
+    }
+    if (!(name.startsWith("Dr") || name.startsWith("Doctor"))) {
+      name = "Dr. " + name;
     }
     const user = await User.create({ name, email, password });
     const token = createToken(user);
@@ -28,10 +31,10 @@ export const register = async (req, res) => {
     });
     return res
       .status(201)
-      .json({ success: true, message: "Registered successfully" });
+      .json({ success: true, message: "Registered successfully", user });
   } catch (err) {
     console.log(err);
-    res.status(400).json({ success: false, message: err.message });
+    res.status(400).json({ success: false, message: error.message });
   }
 };
 
@@ -66,9 +69,88 @@ export const login = async (req, res) => {
       .status(200)
       .json({ success: true, message: "Logged in successfully.", user });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
+
+export const getUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    const {
+      name,
+      email,
+      contactNumber,
+      backgroundImage,
+      profileImage,
+      specialty,
+      department,
+      gender,
+      hospitalName,
+      hospitalAddress,
+    } = user;
+    const updatedUser = {
+      name,
+      email,
+      contactNumber,
+      backgroundImage,
+      profileImage,
+      specialty,
+      department,
+      gender,
+      hospitalName,
+      hospitalAddress,
+    };
+    return res.status(200).json({ success: true, data: updatedUser });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const updateUser = async (req, res) => {
+  try {
+    const updates = req.body;
+    await User.findByIdAndUpdate(req.user.id, updates);
+    return res
+      .status(200)
+      .json({ success: true, message: "User Profile Updated!" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const uploadProfileImage = async (req, res) => {
+  try {
+    const image = req.file;
+    const { imageType } = req.body;
+    console.log(image, imageType);
+    if (imageType === "profileImage") {
+      await User.findByIdAndUpdate(req.user.id, {
+        profileImage: image.filename,
+      });
+    } else if (imageType === "backgroundImage") {
+      await User.findByIdAndUpdate(req.user.id, {
+        backgroundImage: image.filename,
+      });
+    }
+    return res
+      .status(200)
+      .json({ success: true, message: "User Profile Updated!" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+export const uploadBgImage = async (req, res) => {
+  try {
+    const backgroundImage = req.file.path;
+    await User.findByIdAndUpdate(req.user.id, { backgroundImage });
+    return res
+      .status(200)
+      .json({ success: true, message: "User Profile Updated" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 export const logout = async (req, res) => {
   try {
     res.clearCookie("authToken", {
