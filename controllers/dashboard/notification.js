@@ -117,8 +117,6 @@ export const deleteNotification = async (req, res) => {
       });
     }
     const notification = await Notification.findByIdAndDelete(id);
-    console.log(notification);
-    console.log(req.user.id);
     await User.findByIdAndUpdate(req.user.id, {
       $pull: { notifications: notification._id },
     });

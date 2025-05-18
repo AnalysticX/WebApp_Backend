@@ -4,7 +4,6 @@ import { User } from "../../models/user.js";
 export const getAllAlerts = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).populate("alerts");
-    console.log(user);
     const alerts = user.alerts;
     if (!alerts) {
       return res
@@ -42,7 +41,6 @@ export const findSingleAlert = async (req, res) => {
 
 export const findFilteredAlerts = async (req, res) => {
   try {
-    console.log("Hello");
     const { type, patientId, diseaseId } = req.body;
     let filterObject = {};
     if (type) {

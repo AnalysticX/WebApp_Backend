@@ -122,7 +122,6 @@ export const uploadProfileImage = async (req, res) => {
   try {
     const image = req.file;
     const { imageType } = req.body;
-    console.log(image, imageType);
     if (imageType === "profileImage") {
       await User.findByIdAndUpdate(req.user.id, {
         profileImage: image.filename,
